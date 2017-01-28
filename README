@@ -1,0 +1,10 @@
+email_gateway:
+-> offers operations to send and receive emails, using SMTP and IMAP.
+-> offers an infrastructure to perform actions when specific emails are received.
+-> written in C and lua.
+-> FreeBSD License.
+
+Build instructions:
+-> go to build directory
+-> call CMake (cmake ..)
+-> make
