@@ -55,8 +55,17 @@ size_t callback(void* addr,
     return lineSize;
 }
 
+size_t writeCallback(char* receivedData, size_t elemSize, size_t elemCount, void* userData)
+{
+    printf("C'est moi, motherfucker\n");
+    printf("%s\n", receivedData);
+    
+    return (elemCount * elemSize);
+}
+
 int main()
 {
+    /*
     CURL* handle = NULL;
     CURLcode result = CURLE_OK;
     const char* from = "<andreichelariu92@yahoo.com>";
@@ -98,5 +107,31 @@ int main()
         curl_easy_cleanup(handle);
 
     }
+    return 0;
+    */
+    
+    CURL* handle;
+    CURLcode success = CURLE_OK;
+    
+    handle = curl_easy_init();
+    success = handle ? CURLE_OK : CURLE_FAILED_INIT;
+    
+    if (success == CURLE_OK) {
+        curl_easy_setopt(handle, CURLOPT_USERNAME, "testemailgateway");
+        curl_easy_setopt(handle, CURLOPT_PASSWORD, "PRIVATE");
+        
+        curl_easy_setopt(handle, CURLOPT_WRITEDATA, NULL);
+        curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writeCallback);
+        
+        curl_easy_setopt(handle, CURLOPT_URL, "imaps://imap.mail.yahoo.com/INBOX");
+        curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, "FETCH 3 (FLAGS BODY[TEXT])");
+        //curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
+        
+        success = curl_easy_perform(handle);
+        
+        
+        curl_easy_cleanup(handle);
+    }
+    
     return 0;
 }
