@@ -24,7 +24,7 @@ set_target_properties(lib_util PROPERTIES PREFIX "")
 
 #test settings
 file(GLOB TEST_SOURCES "./src/test/*.c")
-add_executable(test ${TEST_SOURCES} "./src/app/Email.c" "./src/app/SmtpConnection.c")
+add_executable(test ${TEST_SOURCES} "./src/app/Email.c" "./src/app/SmtpConnection.c" "./src/app/ImapConnection.c")
 target_link_libraries(test lib_util)
 find_package(CURL)
 if(CURL_FOUND)
