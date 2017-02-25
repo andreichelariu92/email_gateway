@@ -6,8 +6,10 @@
 
 #include "lib_util/MemoryRegion.h"
 #include "lib_util/CharBuffer.h"
+
 #include "app/Email.h"
 #include "app/SmtpConnection.h"
+#include "app/ImapConnection.h"
 
 char* test_MemoryRegion_Allocate()
 {
@@ -439,6 +441,81 @@ char* test_SmtpConnection_SendEmail2()
     return 0;
 }
 
+char* test_ImapConnection_Create()
+{
+    //test case 1:
+    //create a connection with invalid option parameter.
+    //the return value should be NULL.
+    {
+        const int invalidOption = -1;
+        ImapConnection* c = ImapConnection_Create(invalidOption);
+        mu_assert("Create IMAP connection with invalid option\n", (c == NULL));
+        
+    }
+    
+    //test case 2:
+    //create a non ssl connection with invalid parameters.
+    //the return value should be NULL.
+    {
+        const int VALID_IDX = 0;
+        const int INVALID_IDX = 1;
+        const int ports[] = {993, -1};
+        const char* ips[] = {"127.0.0.1", NULL};
+        
+        ImapConnection* c1 = ImapConnection_Create(IMAP_NO_SSL, ips[VALID_IDX], ports[INVALID_IDX]);
+        ImapConnection* c2 = ImapConnection_Create(IMAP_NO_SSL, ips[INVALID_IDX], ports[VALID_IDX]);
+        mu_assert("Create non SSL IMAP connection with invalid params\n", (c1 == NULL && c2 == NULL));
+    }
+    
+    //test case 3:
+    //create ssl imap connection with invalid parameters.
+    //the return value should be NULL.
+    {
+        const int VALID_IDX = 0;
+        const int INVALID_IDX = 1;
+        const int ports[] = {993, -1};
+        const char* ips[] = {"127.0.0.1", "wrong"};
+        const char* users[2] = {"user", NULL};
+        const char* passwords[] = {"pass", NULL};
+        
+        const int PORT_MASK = 0;
+        const int IP_MASK = 1;
+        const int USER_MASK = 2;
+        const int PASSWORD_MASK = 3;
+        
+        int optionIdx = 0;
+        for (; optionIdx < 4; ++optionIdx) {
+           ImapConnection* c = ImapConnection_Create(IMAP_SSL, 
+                                                      ips[optionIdx == IP_MASK],
+                                                      ports[optionIdx == PORT_MASK],
+                                                      users[optionIdx == USER_MASK],
+                                                      passwords[optionIdx == PASSWORD_MASK]
+                                                     );
+            //ImapConnection* c = ImapConnection_Create(IMAP_SSL, "127.0.0.1", 993, users[1], NULL);
+            mu_assert("Create IMAP SSL connection with invalid params\n", (c == NULL));
+            
+        }
+    }
+    
+    //test case 4:
+    //create imap connections with valid parameters.
+    //the return values should be different from NULL.
+    {
+        const char* validIp = "127.0.0.1";
+        const int validPort = 993;
+        const char* validUser = "user";
+        const char* validPass = "password";
+        
+        ImapConnection* i1 = ImapConnection_Create(IMAP_NO_SSL, validIp, validPort);
+        ImapConnection* i2 = ImapConnection_Create(IMAP_SSL, validIp, validPort, validUser, validPass);
+        
+        mu_assert("Create IMAP connections with valid params\n", (i1 != NULL && i2 != NULL));
+        
+        ImapConnection_Delete(i1);
+        ImapConnection_Delete(i2);
+    }
+}
+
 int tests_run = 0;
 
 char* runAllTests()
@@ -460,6 +537,8 @@ char* runAllTests()
 
     mu_run_test(test_SmtpConnection_Create);
     mu_run_test(test_SmtpConnection_SendEmail2);
+    
+    mu_run_test(test_ImapConnection_Create);
     return 0;
 }
 
