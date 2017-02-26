@@ -516,6 +516,65 @@ char* test_ImapConnection_Create()
     }
 }
 
+char* test_ImapConnectionExecuteCommand()
+{
+    //test case 1:
+    //execute a command on an invalid connection (NULL).
+    //the result should be NULL.
+    {
+        ImapConnection* invalidConnection = NULL;
+        const char* validCommand = "SELECT INBOX";
+        
+        const char* result = ImapConnection_ExecuteCommand(invalidConnection, validCommand);
+        mu_assert("Execute IMAP command on NULL connection\n", (result == NULL));
+        
+        ImapConnection_Delete(invalidConnection);
+    }
+    
+    //test case 2:
+    //execute an invalid command (NULL) on a valid connection.
+    //the result should be NULL.
+    {
+        ImapConnection* validConnection = ImapConnection_Create(IMAP_NO_SSL, "127.0.0.1", 993);
+        const char* invalidCommand = NULL;
+        
+        const char* result = ImapConnection_ExecuteCommand(validConnection, invalidCommand);
+        mu_assert("Execute invalid IMAP command on valid connection\n", (result == NULL));
+        
+        ImapConnection_Delete(validConnection);
+    }
+    
+    //test case 3:
+    //execute a valid command on a connection that does not support IMAP protocol.
+    //the result should be NULL.
+    {
+        ImapConnection* localConnection = ImapConnection_Create(IMAP_NO_SSL, "127.0.0.1", 993);
+        const char* validCommand = "SELECT INBOX";
+        
+        const char* result = ImapConnection_ExecuteCommand(localConnection, validCommand);
+        mu_assert("Execute IMAP command on a connection that does not handle IMAP\n", (result == NULL));
+        
+        ImapConnection_Delete(localConnection);
+    }
+    
+    /*
+    //TODO: Andrei: remove personal data before commit to github.
+    //test case 4:
+    //execute a valid command on an IMAP server.
+    //the result should be NOT NULL.
+    {
+        ImapConnection* validConnection = ImapConnection_Create(IMAP_SSL, "imaps://imap.mail.yahoo.com/", IMAP_SSL_DEFAULT_PORT, "testemailgateway", "PRIVATE");
+        const char* validCommand = "SELECT INBOX";
+        
+        const char* result = ImapConnection_ExecuteCommand(validConnection, validCommand);
+        mu_assert("Execute IMAP command on a valid IMAP connection\n", (result != NULL));
+        
+        printf("%s\n", result);
+        ImapConnection_Delete(validConnection);
+    }
+    */
+}
+
 int tests_run = 0;
 
 char* runAllTests()
@@ -539,6 +598,7 @@ char* runAllTests()
     mu_run_test(test_SmtpConnection_SendEmail2);
     
     mu_run_test(test_ImapConnection_Create);
+    mu_run_test(test_ImapConnectionExecuteCommand);
     return 0;
 }
 
