@@ -10,6 +10,8 @@
 
 const int IMAP_SSL = 0;
 const int IMAP_NO_SSL = 1;
+const int IMAP_SSL_DEFAULT_PORT = 993;
+const int IMAP_NO_SSL_DEFAULT_PORT = 143;
 
 struct _ImapConnection
 {
@@ -59,10 +61,17 @@ static CURL* createHandle(int isSsl, CharBuffer* ip, int port, CharBuffer* user,
     output = curl_easy_init();
     createSuccess = (output != NULL);
     
-    sprintf(stringPort, "%d", port);
-    ipPort = createSuccess ? formatField(CharBuffer_Buffer(ip, "GET"), ":", stringPort) : NULL;
-    curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_URL, CharBuffer_Buffer(ipPort, "GET")) : CURLE_FAILED_INIT;
-    createSuccess = (curlCode == CURLE_OK);
+    //for default ports it is not necessary to add it to the URL
+    if ((isSsl && port == IMAP_SSL_DEFAULT_PORT) || (!isSsl && port == IMAP_NO_SSL_DEFAULT_PORT)) {
+        curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_URL, CharBuffer_Buffer(ip, "GET")) : CURLE_FAILED_INIT;
+        createSuccess = (curlCode == CURLE_OK);
+    }
+    else {
+        sprintf(stringPort, "%d", port);
+        ipPort = createSuccess ? formatField(CharBuffer_Buffer(ip, "GET"), ":", stringPort) : NULL;
+        curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_URL, CharBuffer_Buffer(ipPort, "GET")) : CURLE_FAILED_INIT;
+        createSuccess = (curlCode == CURLE_OK);
+    }
     
     if (isSsl) {
         curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_USERNAME, CharBuffer_Buffer(user, "GET")) : CURLE_FAILED_INIT;
@@ -87,6 +96,50 @@ static int validateIp(CharBuffer* ip)
     char* slashPosition = strstr(CharBuffer_Buffer(ip, "GET"), "//");
     
     return ((dotPosition != NULL) || (slashPosition != NULL));
+}
+
+static size_t curlCallback(char* receivedData, size_t elemSize, size_t elemCount, void* userData)
+{
+    int readSuccess = 0;
+    size_t bytesProcessed = 0; // if different than elemCount*elemSize, signals error to libCURL
+    
+    readSuccess = (receivedData != NULL && elemSize != 0 && elemCount != 0);
+    
+    if (readSuccess) {
+        ImapConnection* connection = (ImapConnection*)userData;
+        char* data = NULL;
+        CharBuffer* dataBuffer = NULL;
+        
+        //put the received data in another buffer.
+        data = malloc((elemCount * elemSize) +1); //1 for NULL terminator
+        readSuccess = (data != NULL);
+        if (readSuccess) {
+            memcpy(data, receivedData, elemSize * elemCount);
+            data[elemSize * elemCount] = '\0';
+        }
+        
+        if (readSuccess && connection->commandResult == NULL) {
+            //the ownership of the data has been passed to the CharBuffer.
+            dataBuffer = readSuccess ? CharBuffer_Take(&data) : NULL;
+            readSuccess = (dataBuffer != NULL);
+            connection->commandResult = readSuccess ? dataBuffer : NULL;
+        }
+        else if (readSuccess && connection->commandResult != NULL) {
+            CharBuffer_Append(connection->commandResult, data);
+            free(data);
+        }
+        
+        if (!readSuccess) {
+            if (dataBuffer) {
+                CharBuffer_Delete(dataBuffer);
+            } else if (data) {
+                free(data);
+            }
+        }
+    }
+    
+    bytesProcessed = readSuccess ? (elemCount * elemSize) : 0;
+    return bytesProcessed;
 }
 
 ImapConnection* ImapConnection_Create(int option, ...)
@@ -173,4 +226,35 @@ void ImapConnection_Delete(ImapConnection* c)
         free(c);
         c = NULL;
     }
+}
+
+const char* ImapConnection_ExecuteCommand(ImapConnection* connection, const char* command)
+{
+    char* output = NULL;
+    
+    int commandSuccess = 0;
+    CURLcode curlCode = CURLE_FAILED_INIT;
+        
+    commandSuccess = (connection != NULL && command != NULL);
+    
+    curlCode = commandSuccess ? curl_easy_setopt(connection->handle, CURLOPT_WRITEDATA, connection) : CURLE_FAILED_INIT;
+    commandSuccess = (curlCode == CURLE_OK);
+    
+    curlCode = commandSuccess ? curl_easy_setopt(connection->handle, CURLOPT_WRITEFUNCTION, curlCallback) : CURLE_FAILED_INIT;
+    commandSuccess = (curlCode == CURLE_OK);
+    
+    curlCode = commandSuccess ? curl_easy_setopt(connection->handle, CURLOPT_CUSTOMREQUEST, command) : CURLE_FAILED_INIT;
+    commandSuccess = (curlCode == CURLE_OK);
+    
+    curlCode = commandSuccess ? curl_easy_perform(connection->handle) : CURLE_FAILED_INIT;
+    commandSuccess = (curlCode == CURLE_OK);
+    
+    output = commandSuccess ? CharBuffer_Buffer(connection->commandResult, "COPY") : NULL;
+    
+    if (commandSuccess) {
+        //clean up the buffer for the next command.
+        CharBuffer_Delete(connection->commandResult);
+        connection->commandResult = NULL;
+    }
+    return output;
 }

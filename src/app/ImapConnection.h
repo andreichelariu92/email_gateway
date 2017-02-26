@@ -6,6 +6,8 @@ typedef struct _ImapConnection ImapConnection;
 
 extern const int IMAP_SSL;
 extern const int IMAP_NO_SSL;
+extern const int IMAP_SSL_DEFAULT_PORT;
+extern const int IMAP_NO_SSL_DEFAULT_PORT;
 
 /**
  * \brief
