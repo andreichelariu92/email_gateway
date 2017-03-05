@@ -11,9 +11,7 @@ if(CURL_FOUND)
 ELSE(CURL_FOUND)
     MESSAGE(FATAL_ERROR "Could not find CURL library")
 ENDIF(CURL_FOUND)
-set(CMAKE_C_FLAGS "-fsanitize=address")
 
-set(RUN_UNIT_TEST "yes")
 if(DEFINED RUN_UNIT_TEST)
     add_custom_command(TARGET unit_test
         POST_BUILD
