@@ -433,10 +433,10 @@ char* test_SmtpConnection_SendEmail2()
                 validContent);
         mu_assert("Send valid email to valid conneciton\n", success);
     }
+    */
 
     SmtpConnection_Delete(localConnection);
     SmtpConnection_Delete(validConnection);
-    */
     
     return 0;
 }
@@ -514,6 +514,8 @@ char* test_ImapConnection_Create()
         ImapConnection_Delete(i1);
         ImapConnection_Delete(i2);
     }
+    
+    return 0;
 }
 
 char* test_ImapConnectionExecuteCommand()
@@ -573,6 +575,8 @@ char* test_ImapConnectionExecuteCommand()
         ImapConnection_Delete(validConnection);
     }
     */
+    
+    return 0;
 }
 
 int tests_run = 0;
