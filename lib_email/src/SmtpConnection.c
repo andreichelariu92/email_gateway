@@ -333,8 +333,8 @@ int SmtpConnection_SendEmail(SmtpConnection* c,
     Email* e = NULL;
     CURLcode curlCode = CURLE_FAILED_INIT;
     
-    e = Email_Create(sender, receiver, subject, content);
-    sendSuccess = (c != NULL && e != NULL);
+    e =  (c != NULL) ? Email_Create(sender, receiver, subject, content) : NULL;
+    sendSuccess = (e != NULL);
     
     if (sendSuccess) {
         c->currentEmail = e;
