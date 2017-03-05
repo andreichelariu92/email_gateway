@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 2.8.9)
+include_directories("../")
+
+file(GLOB LIB_EMAIL_SOURCES "./src/*.c")
+add_library(lib_email SHARED ${LIB_EMAIL_SOURCES})
+find_package(CURL)
+if(CURL_FOUND)
+    include_directories(${CURL_INCLUDE_DIR})
+    target_link_libraries(lib_email ${CURL_LIBRARIES})
+ELSE(CURL_FOUND)
+    MESSAGE(FATAL_ERROR "Could not find CURL library")
+ENDIF(CURL_FOUND)
