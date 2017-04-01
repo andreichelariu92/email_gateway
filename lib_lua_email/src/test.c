@@ -96,6 +96,7 @@ static const struct luaL_Reg pointFunctions[] = {
     {NULL, NULL}
 };
 
+/*
 int luaopen_lib_lua_email(lua_State* L)
 {
     luaL_newmetatable(L, "test_luaPoint");
@@ -111,3 +112,4 @@ int luaopen_lib_lua_email(lua_State* L)
     luaL_newlib(L, pointLib);
     return 1;
 }
+*/
