@@ -131,4 +131,45 @@ noError = validSslConnection:sendEmail("to@test.com",
     "content")
 assert(noError == false)
 
+--test case 9
+-- create an imap connection with invalid parameters (NON_SSL)
+-- the function should throw error
+noError = pcall(function()
+    return email.makeImap(false,
+        "127.0.0.1")
+    end
+)
+assert(noError == false)
+
+--test case 10
+-- create an imap connection (SSL) with invalid parameters
+-- the function should throw error.
+noError = pcall(function()
+    return email.makeImap(true,
+        "127.0.0.1",
+        456,
+        "user")
+    end
+)
+assert(noError == false)
+
+--test case 11
+-- create a valid imap connection (SSL)
+-- perform a command with invalid parameters
+-- the function should throw error.
+local imapConnection = email.makeImap(true,
+    "127.0.0.1",
+    456,
+    "user",
+    "pass")
+noError = pcall(function() return imapConnection:executeCommand() end)
+assert(noError == false)
+
+--test case 12
+-- perform a valid command on an imap connection.
+-- the return value should be an empty string because there is no
+-- imap server on local machine.
+local response, error = imapConnection:executeCommand("NOOP")
+assert((response == false) and error)
+
 print("All tests went OK :)")
