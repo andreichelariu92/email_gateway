@@ -159,7 +159,7 @@ assert(noError == false)
 -- the function should throw error.
 local imapConnection = email.makeImap(true,
     "127.0.0.1",
-    456,
+    993,
     "user",
     "pass")
 noError = pcall(function() return imapConnection:executeCommand() end)
@@ -169,7 +169,7 @@ assert(noError == false)
 -- perform a valid command on an imap connection.
 -- the return value should be an empty string because there is no
 -- imap server on local machine.
-local response, error = imapConnection:executeCommand("NOOP")
-assert((response == false) and error)
+local response, error = imapConnection:executeCommand("SELECT INBOX")
+assert(response == nil and error ~= nil)
 
 print("All tests went OK :)")
