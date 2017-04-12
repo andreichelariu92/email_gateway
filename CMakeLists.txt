@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.9)
 project(email_gateway)
 #set(RUN_UNIT_TEST "yes")
+#set(RUN_LUA_UNIT_TEST "yes")
 IF (DEFINED RUN_UNIT_TEST)
     set(CMAKE_BUILD_TYPE Debug)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -fprofile-arcs -ftest-coverage -fsanitize=address")
