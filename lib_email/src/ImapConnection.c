@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 
 const int IMAP_SSL = 0;
 const int IMAP_NO_SSL = 1;
@@ -19,6 +20,7 @@ struct _ImapConnection
     CharBuffer* ip;
     int port;
     int isSsl;
+    int fetchRequest;
     CharBuffer* user;
     CharBuffer* pass;
     CharBuffer* commandResult;
@@ -98,6 +100,35 @@ static int validateIp(CharBuffer* ip)
     return ((dotPosition != NULL) || (slashPosition != NULL));
 }
 
+static char* parseFetchResponse(char* response, size_t responseLen)
+{
+    char* output = NULL;
+    int parseSuccess = 0;
+    //the content of the email is not part of the responseLen
+    //the length of the response is between {} accolades.
+    long int fetchLen = 0;
+    char* begining = NULL;
+    char* ending = NULL;
+        
+    begining = memchr(response, '{', responseLen);
+    parseSuccess = (begining != NULL);
+        
+    //convert number after '{'
+    fetchLen = parseSuccess ? strtol(begining + 1, &ending, 10) : 0;
+    parseSuccess = (fetchLen > 0 && fetchLen < LONG_MAX && ending != NULL);
+    
+    output = parseSuccess ? malloc(fetchLen + 1) : NULL; //space for \0
+    parseSuccess = (output != NULL);
+        
+    if (parseSuccess) {
+        //the content of the resonse if after '}'
+        memcpy(output, ending + 1, fetchLen);
+        output[fetchLen] = '\0';
+    }
+    
+    return output;
+}
+
 static size_t curlCallback(char* receivedData, size_t elemSize, size_t elemCount, void* userData)
 {
     int readSuccess = 0;
@@ -109,6 +140,7 @@ static size_t curlCallback(char* receivedData, size_t elemSize, size_t elemCount
         ImapConnection* connection = (ImapConnection*)userData;
         char* data = NULL;
         CharBuffer* dataBuffer = NULL;
+        char* fetchResponse = NULL;
         
         //put the received data in another buffer.
         data = malloc((elemCount * elemSize) +1); //1 for NULL terminator
@@ -127,6 +159,16 @@ static size_t curlCallback(char* receivedData, size_t elemSize, size_t elemCount
         else if (readSuccess && connection->commandResult != NULL) {
             CharBuffer_Append(connection->commandResult, data);
             free(data);
+        }
+        
+        //the response to FETCH commands is stored after elemCount*elemSize
+        //parse the response and get the content
+        if (readSuccess && connection->fetchRequest) {
+            fetchResponse = parseFetchResponse(receivedData, elemSize * elemCount);
+            if (fetchResponse) {
+                CharBuffer_Append(connection->commandResult, fetchResponse);
+                free(fetchResponse);
+            }
         }
         
         if (!readSuccess) {
@@ -202,6 +244,7 @@ ImapConnection* ImapConnection_Create(int option, ...)
         output->user = user;
         output->pass = pass;
         output->commandResult = commandResult;
+        output->fetchRequest = 0;
     }
     else {
         curl_easy_cleanup(handle);
@@ -234,7 +277,8 @@ const char* ImapConnection_ExecuteCommand(ImapConnection* connection, const char
     
     int commandSuccess = 0;
     CURLcode curlCode = CURLE_FAILED_INIT;
-        
+    const char* fetchPosition = NULL;
+    
     commandSuccess = (connection != NULL && command != NULL);
     
     curlCode = commandSuccess ? curl_easy_setopt(connection->handle, CURLOPT_WRITEDATA, connection) : CURLE_FAILED_INIT;
@@ -245,6 +289,11 @@ const char* ImapConnection_ExecuteCommand(ImapConnection* connection, const char
     
     curlCode = commandSuccess ? curl_easy_setopt(connection->handle, CURLOPT_CUSTOMREQUEST, command) : CURLE_FAILED_INIT;
     commandSuccess = (curlCode == CURLE_OK);
+    
+    fetchPosition = commandSuccess ? strstr(command, "FETCH") : NULL;
+    if (commandSuccess) {
+        connection->fetchRequest = (fetchPosition != NULL);
+    }
     
     curlCode = commandSuccess ? curl_easy_perform(connection->handle) : CURLE_FAILED_INIT;
     commandSuccess = (curlCode == CURLE_OK);
