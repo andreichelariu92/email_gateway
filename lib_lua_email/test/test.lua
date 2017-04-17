@@ -172,4 +172,32 @@ assert(noError == false)
 local response, error = imapConnection:executeCommand("SELECT INBOX")
 assert(response == nil and error ~= nil)
 
+--[[
+--test case 13
+--peform a SELECT INBOX operation on a valid imap connection
+-- the return value should be a string
+local yahooConnection = email.makeImap(true, 
+    "imaps://imap.mail.yahoo.com",
+    993,
+    "PRIVATE",
+    "PRIVATE")
+assert(yahooConnection)
+response, error = yahooConnection:executeCommand("SELECT INBOX")
+assert(response and not error)
+
+--test case 14
+-- fetch the subject of the 3rd email in the inbox
+-- the return value should contain the expected text.
+response = yahooConnection:executeCommand("FETCH 3 BODY.PEEK[HEADER.FIELDS (SUBJECT)]")
+local found = string.find(response, "Test Email gateway")
+assert(found)
+
+--test case 15
+-- fetch the content of the 3rd email in the inbox
+-- the return value should contain the expected text.
+response = yahooConnection:executeCommand("FETCH 3 BODY[TEXT]")
+found = string.find(response, "It works!")
+assert(found)
+]]--
+
 print("All tests went OK :)")
