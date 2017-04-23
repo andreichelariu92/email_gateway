@@ -18,6 +18,14 @@ add_custom_command(TARGET lib_lua_email
         $<TARGET_FILE:lib_lua_email> 
         "${CMAKE_CURRENT_SOURCE_DIR}/test/"
 )
+
+add_custom_command(TARGET lib_lua_email
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    $<TARGET_FILE:lib_lua_email>
+    "${CMAKE_CURRENT_SOURCE_DIR}/../app/"
+)
+    
 if(DEFINED RUN_LUA_UNIT_TEST AND NOT DEFINED RUN_UNIT_TEST)
     add_custom_command(TARGET lib_lua_email
         POST_BUILD
