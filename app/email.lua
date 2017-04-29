@@ -8,51 +8,61 @@ email.ports = {
 }
 
 email.servers = {
-    yahooImap = "imaps://imap.mail.yahoo.com",
+    yahooImap = "imaps://imap.mail.yahoo.com/INBOX",
     yahooSmtp = "smtps://smtp.mail.yahoo.com",
-    gmailImap = "imaps://imap.gmail.com",
+    gmailImap = "imaps://imap.gmail.com/INBOX",
     gmailSmtp = "smtps://smtp.gmail.com"
 }
 
 email.imapCommands = {
-    login = "SELECT INBOX",
+    searchLast= "SELECT INBOX",
     fetchHeader = function (id) return string.format("FETCH %d (BODY[HEADER.FIELDS (TO FROM SUBJECT)])", id) end,
     fetchBody = function (id) return string.format("FETCH %d BODY[TEXT]", id) end,
-    logout = "LOGOUT"
+    searchNew = "SEARCH NEW"
 }
 
 email.imapParsers = {}
 
-function email.imapParsers.login(response)
+function email.imapParsers.searchLast(response)    
     local pattern = "%* (%d+) EXISTS"
-    local output = string.match(response, pattern)
+    local output = nil
     local err = nil
     
+    if response then
+        output = string.match(response, pattern)
+        output = output and (tonumber(output) or nil)
+    end
     if not output then
-        err = "SELECT INBOX command has failed"
+        err = "searchLast command has failed"
     end
     
     return output, err
 end
 
-function email.imapParsers.fetch(header, body)
+function email.imapParsers.fetch(header, body)    
     local output = nil
     local error = "INVALID header and body"
     
-    local fromPattern = "From: <(.-)>"
-    local from = string.match(header, fromPattern)
-    
-    local toPattern = "To: <(.-)>"
-    local to = string.match(header, toPattern)
-    
-    local subjectPattern = "Subject: (.-)\r\n"
-    local subject = string.match(header, subjectPattern)
-    
-    local contentStart = string.find(body, "}")
+    local from = nil
+    local to = nil
+    local subject = nil
     local content = nil
-    if contentStart then
-        contentStart = contentStart + 1
-        content = string.sub(body, contentStart)
+    local contentStart = nil
+    
+    local fromPattern = "From: <(.-)>"
+    local toPattern = "To: <(.-)>"
+    local subjectPattern = "Subject: (.-)\r\n"
+    
+    if header then
+        from = string.match(header, fromPattern)
+        to = string.match(header, toPattern)
+        subject = string.match(header, subjectPattern)
+    end
+    
+    if body then
+        contentStart = string.find(body, "}")
+        contentStart = contentStart and ((contentStart + 1) or nil)
+        content = contentStart and (string.sub(body, contentStart) or nil)
     end
     
     if from and to and subject and content then
@@ -65,8 +75,24 @@ function email.imapParsers.fetch(header, body)
         error = nil
     end
     
-    print("EXTRALOG: ", output)
     return output, error
+end
+
+function email.imapParsers.searchNew(response)    
+    local id = nil
+    local error = "There is no new email in mailbox."
+    local pattern = "SEARCH (%d+)"
+    
+    if response then
+        id = string.match(response, pattern)
+        id = id and tonumber(id) or nil
+    end
+    
+    if id then
+        error = nil
+    end
+   
+    return id, error
 end
 
 local function runTests()
@@ -77,15 +103,14 @@ local function runTests()
     assert(email.ports.imapNoSsl == 143)
     
     -- test usual email servers (yahoo, gmail)
-    assert(email.servers.yahooImap == "imaps://imap.mail.yahoo.com")
+    assert(email.servers.yahooImap == "imaps://imap.mail.yahoo.com/INBOX")
     assert(email.servers.yahooSmtp == "smtps://smtp.mail.yahoo.com")
-    assert(email.servers.gmailImap == "imaps://imap.gmail.com")
+    assert(email.servers.gmailImap == "imaps://imap.gmail.com/INBOX")
     assert(email.servers.gmailSmtp == "smtps://smtp.gmail.com")
     
     --test simple imap commands
-    assert(email.imapCommands.login == "SELECT INBOX")
-    assert(email.imapCommands.logout == "LOGOUT")
-    --assert(email.imapCommands.fetch(3) == "FETCH 3 BODY.PEEK[HEADER.subject]")
+    assert(email.imapCommands.searchLast == "SELECT INBOX")
+    assert(email.imapCommands.searchNew == "SEARCH NEW")
     
     local user = io.read()
     local pass = io.read()
@@ -97,10 +122,10 @@ local function runTests()
         pass)
     assert(connection)
     
-    --test parseImapResponse function for login command
-    local command = email.imapCommands.login
+    --test searchLast command
+    local command = email.imapCommands.searchLast
     local response = connection:executeCommand(command)
-    local id, err = email.imapParsers.login(response)
+    local id, err = email.imapParsers.searchLast(response)
     assert(id and not err)
     
     --test fetch command
@@ -111,15 +136,15 @@ local function runTests()
     local e, err2 = email.imapParsers.fetch(header, body)
     assert(e.to and e.from and e.subject and e.content)
     
-    --test logout command
-    command = email.imapCommands.logout
-    response = connection:executeCommand(command)
-    local success, err3 = email.imapParsers.logout(response)
-    assert(success and not err3)
-    
+    --test search command
+    command = email.imapCommands.searchNew
+    response, err2 = connection:executeCommand(command)
+    local success, err3 = email.imapParsers.searchNew(response)
+    assert(success or err3)
+        
     print("All tests went OK")
 end
 
-runTests()
+--runTests()
 
 return email
