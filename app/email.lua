@@ -49,8 +49,8 @@ function email.imapParsers.fetch(header, body)
     local content = nil
     local contentStart = nil
     
-    local fromPattern = "From: <(.-)>"
-    local toPattern = "To: <(.-)>"
+    local fromPattern = "From:.-<(.-)>"
+    local toPattern = "To:.-<(.-)>"
     local subjectPattern = "Subject: (.-)\r\n"
     
     if header then
