@@ -1,17 +1,23 @@
 require("email")
+--very helpful project https://github.com/slembcke/debugger.lua
+--local dbg = require("debugger")
 
-local function getLastEmailIdx(connection)
-    local command = email.imapCommands.searchLast
-    local response, err = connection:executeCommand(command)
-    local id = nil
-    
-    if response then
-        id, err = email.imapParsers.searchLast(response)
+--function that searches for the last index in the mailbox,
+--that is bigger or equal with startIdx.
+--if there is no id bigger, it returns startIdx.
+local function getLastEmailIdx(connection, startIdx)
+    local command = email.imapCommands.lastEmail
+    local response = connection:executeCommand(command)
+    local idx, err = email.imapParsers.lastEmail(response)
+  
+    if err then
+        idx = startIdx
     end
     
-    return id, err
+    return idx
 end
 
+--function that gets the email at the given index.
 local function fetchEmail(connection, idx)
     local output = nil
     local err = nil
@@ -39,16 +45,16 @@ function fetchEmails(connection, startIdx)
     assert(connection)
     
     local readEmailIdx = 0
-    local inboxEmailIdx = 0
+    local lastIdx = 0
     local output = {}
     local continue = true
     startIdx = startIdx or 1
     
-    while continue do
-        inboxEmailIdx = getLastEmailIdx(connection)
-        assert(inboxEmailIdx, "Error executing SELECT INBOX IMAP command")
+    while continue do        
+        lastIdx = getLastEmailIdx(connection, startIdx)
+        assert(lastIdx, "Error executing SELECT INBOX IMAP command")
      
-        for readEmailIdx = startIdx, inboxEmailIdx, 1 do
+        for readEmailIdx = startIdx, lastIdx, 1 do
             local e = fetchEmail(connection, readEmailIdx)
             if e then
                 table.insert(output, e)
@@ -59,31 +65,58 @@ function fetchEmails(connection, startIdx)
         
         --prepare for the next iteration
         output ={}
-        startIdx = inboxEmailIdx + 1
+        if startIdx ~= lastIdx then
+            startIdx = lastIdx + 1
+        end
     end
     
+end
+
+local function sleep(seconds)
+    local now = os.clock()
+    
+    while os.clock() - now < seconds do
+        --nothing
+    end
 end
 
 local function test()
     local user = io.read()
     local pass = io.read()
-    local connection = email.makeImap(true,
+    
+    local imapConnection = email.makeImap(true,
         email.servers.yahooImap,
         email.ports.imapSsl,
         user,
         pass)
+    assert(imapConnection)
+    
+    local smtpConnection = email.makeSmtp(true,
+        email.servers.yahooSmtp,
+        email.ports.smtpSsl,
+        "USER",
+        "PASS")
+    assert(smtpConnection)
     
     local emailGenerator = coroutine.create(fetchEmails)
     local try = 1
-    local _, emails = coroutine.resume(emailGenerator, connection)
-    while try < 3 do
+    local _, emails = coroutine.resume(emailGenerator, imapConnection)
+
+    while try < 5 do
+        print("~~~~~~~~~~~~~~~~~~~~~~~~Begin iteration~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         for k, v in pairs(emails) do
             print(k, v.subject)
         end
-    
+        print("~~~~~~~~~~~~~~~~~~~~~~~~End iteration~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        
         _, emails = coroutine.resume(emailGenerator, true)
+        smtpConnection:sendEmail("SENDER",
+            "RECEIVER",
+            "Test emailFetcher take 100-" .. try,
+            "It works")
+        sleep(120)
         try = try + 1
     end
 end
 
-test()
+--test()
