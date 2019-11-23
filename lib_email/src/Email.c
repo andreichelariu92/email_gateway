@@ -84,7 +84,7 @@ Email* Email_Create(const char* sender,
     return output;
 }
 
-char* Email_Sender(Email* e, const char* option)
+char* Email_GetSender(Email* e, const char* option)
 {
     char* output = NULL;
 
@@ -95,7 +95,7 @@ char* Email_Sender(Email* e, const char* option)
     return output;
 }
 
-char* Email_Receiver(Email* e, const char* option)
+char* Email_GetReceiver(Email* e, const char* option)
 {
     char* output = NULL;
 
@@ -106,7 +106,7 @@ char* Email_Receiver(Email* e, const char* option)
     return output;
 }
 
-char* Email_Subject(Email* e, const char* option)
+char* Email_GetSubject(Email* e, const char* option)
 {
     char* output = NULL;
 
@@ -117,7 +117,7 @@ char* Email_Subject(Email* e, const char* option)
     return output;
 }
 
-char* Email_Content(Email* e, const char* option)
+char* Email_GetContent(Email* e, const char* option)
 {
     char* output = NULL;
 

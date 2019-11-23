@@ -1,5 +1,4 @@
 #include "SmtpConnection.h"
-#include "Email.h"
 #include "lib_util/src/CharBuffer.h"
 #include "lib_util/src/MemoryRegion.h"
 
@@ -75,10 +74,10 @@ static CharBuffer* formatEmail(Email* e)
     formatSuccess = (e != NULL && output != NULL);
     
     //get pointers to the email fields
-    sender = formatSuccess ? Email_Sender(e, "GET") : NULL;
-    receiver  = formatSuccess ? Email_Receiver(e, "GET") : NULL;
-    subject = formatSuccess ? Email_Subject(e, "GET") : NULL;
-    content = formatSuccess ? Email_Content(e,"GET") : NULL;
+    sender = formatSuccess ? Email_GetSender(e, "GET") : NULL;
+    receiver  = formatSuccess ? Email_GetReceiver(e, "GET") : NULL;
+    subject = formatSuccess ? Email_GetSubject(e, "GET") : NULL;
+    content = formatSuccess ? Email_GetContent(e,"GET") : NULL;
     
     //add sender
     formatSuccess = formatSuccess ? CharBuffer_Append(output, sender) : 0;
@@ -323,25 +322,19 @@ void SmtpConnection_Delete(SmtpConnection* c)
     }
 }
 
-int SmtpConnection_SendEmail(SmtpConnection* c,
-    const char* sender,
-    const char* receiver, 
-    const char* subject,
-    const char* content)
+int SmtpConnection_SendEmail(SmtpConnection* c, Email* e)
 {
     int sendSuccess = 0;
-    Email* e = NULL;
     CURLcode curlCode = CURLE_FAILED_INIT;
     
-    e =  (c != NULL) ? Email_Create(sender, receiver, subject, content) : NULL;
-    sendSuccess = (e != NULL);
+    sendSuccess = (c!= NULL && e != NULL);
     
     if (sendSuccess) {
         c->currentEmail = e;
         
         //set all the options for the request
-        struct curl_slist* receivers = makeReceiverList(receiver);
-        curl_easy_setopt(c->handle, CURLOPT_MAIL_FROM, Email_Sender(e, "GET"));
+        struct curl_slist* receivers = makeReceiverList(Email_GetReceiver(e, "GET"));
+        curl_easy_setopt(c->handle, CURLOPT_MAIL_FROM, Email_GetSender(e, "GET"));
         curl_easy_setopt(c->handle, CURLOPT_MAIL_RCPT, receivers);
         curl_easy_setopt(c->handle, CURLOPT_READFUNCTION, curlCallback);
         curl_easy_setopt(c->handle, CURLOPT_READDATA, c);
