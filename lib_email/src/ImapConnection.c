@@ -31,7 +31,7 @@ static CharBuffer* formatField(const char* prefix, const char* field, const char
     int formatSuccess = 0;
     CharBuffer* output = NULL;
     
-    output = CharBuffer_Copy(prefix);
+    output = CharBuffer_Create(prefix);
     formatSuccess = (output != NULL);
     
     formatSuccess = formatSuccess ? CharBuffer_Append(output, field) : 0;
@@ -214,7 +214,7 @@ ImapConnection* ImapConnection_Create(int option, ...)
     }
     
     ipPtr = createSuccess ? va_arg(args, char*) : NULL;
-    ip = createSuccess ? CharBuffer_Copy(ipPtr) : NULL;
+    ip = createSuccess ? CharBuffer_Create(ipPtr) : NULL;
     createSuccess = (ip != NULL && validateIp(ip));
     
     port = createSuccess ? va_arg(args, int) : -1;
@@ -223,11 +223,11 @@ ImapConnection* ImapConnection_Create(int option, ...)
     if (isSsl) {
     
         userPtr = createSuccess ? va_arg(args, char*) : NULL;
-        user = createSuccess ? CharBuffer_Copy(userPtr) : NULL;
+        user = createSuccess ? CharBuffer_Create(userPtr) : NULL;
         createSuccess = (user != NULL);
         
         passPtr = createSuccess ? va_arg(args, char*) : NULL;
-        pass = createSuccess ? CharBuffer_Copy(passPtr) : NULL;
+        pass = createSuccess ? CharBuffer_Create(passPtr) : NULL;
         createSuccess = (pass != NULL);
     }
     

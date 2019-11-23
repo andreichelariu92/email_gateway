@@ -42,21 +42,21 @@ Email* Email_Create(const char* sender,
     validInput = validInput ? isValidEmail(sender) : validInput;
     validInput = validInput ? isValidEmail(receiver) : validInput;
 
-    senderBuff = validInput ? CharBuffer_Copy(sender) : NULL;
+    senderBuff = validInput ? CharBuffer_Create(sender) : NULL;
     allocationSuccess = (senderBuff != NULL);
 
     receiverBuff = (validInput && allocationSuccess) 
-        ? CharBuffer_Copy(receiver)
+        ? CharBuffer_Create(receiver)
         : NULL;
     allocationSuccess = (receiverBuff != NULL);
 
     subjectBuff = (validInput && allocationSuccess)
-        ? CharBuffer_Copy(subject)
+        ? CharBuffer_Create(subject)
         : NULL;
     allocationSuccess = (subjectBuff != NULL);
 
     contentBuff = (validInput && allocationSuccess)
-        ? CharBuffer_Copy(content)
+        ? CharBuffer_Create(content)
         : NULL;
     allocationSuccess = (contentBuff != NULL);
 

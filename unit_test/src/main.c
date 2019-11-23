@@ -121,11 +121,11 @@ char* test_All2()
 char* test_CharBuffer_Copy()
 {
     char command[] = "SELECT name FROM boys;";
-    CharBuffer* c1 = CharBuffer_Copy(command);
+    CharBuffer* c1 = CharBuffer_Create(command);
     mu_assert("CharBuffer_Copy failed for valid input", (c1 != 0));
     CharBuffer_Delete(c1);
 
-    CharBuffer* c2 = CharBuffer_Copy(0);
+    CharBuffer* c2 = CharBuffer_Create(0);
     mu_assert("CharBuffer_Copy failed for valid input", (c2 == 0));
     CharBuffer_Delete(c2);
 
@@ -152,11 +152,11 @@ char* test_CharBuffer_Buffer()
     char* c1 = CharBuffer_Buffer(0, "get");
     mu_assert("CharBuffer_Buffer failed", (c1 == 0));
 
-    CharBuffer* cb = CharBuffer_Copy("Ana are raie");
+    CharBuffer* cb = CharBuffer_Create("Ana are raie");
     mu_assert("Getter function for CharBuffer failed", (CharBuffer_Buffer(cb, "get") != 0));
     CharBuffer_Delete(cb);
     
-    CharBuffer* cb2 = CharBuffer_Copy("Just a test");
+    CharBuffer* cb2 = CharBuffer_Create("Just a test");
     
     char* copyBuff = CharBuffer_Buffer(cb2, "copy");
     mu_assert("Copy option for CharBuffer_Buffer failed", (copyBuff != 0));
@@ -172,11 +172,11 @@ char* test_CharBuffer_Buffer()
 
 char* test_CharBuffer_All()
 {
-    CharBuffer* c1 = CharBuffer_Copy("Andrei Chelariu");
-    CharBuffer* c2 = CharBuffer_Copy("Stefan Mechenici");
-    CharBuffer* c3 = CharBuffer_Copy("Sebi Andone");
+    CharBuffer* c1 = CharBuffer_Create("Andrei Chelariu");
+    CharBuffer* c2 = CharBuffer_Create("Stefan Mechenici");
+    CharBuffer* c3 = CharBuffer_Create("Sebi Andone");
 
-    CharBuffer* total = CharBuffer_Copy("");
+    CharBuffer* total = CharBuffer_Create("");
     CharBuffer_Append(total, CharBuffer_Buffer(c1, "get"));
     CharBuffer_Append(total, ", ");
     CharBuffer_Append(total, CharBuffer_Buffer(c2, "GET"));

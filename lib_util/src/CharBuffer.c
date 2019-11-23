@@ -31,7 +31,7 @@ static char* copyBuffer(const char* buffer)
     return output;
 }
 
-CharBuffer* CharBuffer_Copy(const char* string)
+CharBuffer* CharBuffer_Create(const char* string)
 {
     CharBuffer* output = 0;
     int stringLen = 0;

@@ -45,7 +45,7 @@ static CharBuffer* formatField(const char* prefix,
     formatSuccess = 
         (prefix != NULL && field != NULL && sufix != NULL);
 
-    output = formatSuccess ? CharBuffer_Copy(prefix) : NULL;
+    output = formatSuccess ? CharBuffer_Create(prefix) : NULL;
     formatSuccess = (output != NULL);
     
     formatSuccess = 
@@ -71,7 +71,7 @@ static CharBuffer* formatEmail(Email* e)
     char* subject = NULL;
     char* content = NULL;
     
-    output = CharBuffer_Copy("From: <");
+    output = CharBuffer_Create("From: <");
     formatSuccess = (e != NULL && output != NULL);
     
     //get pointers to the email fields
@@ -248,7 +248,7 @@ SmtpConnection* SmtpConnection_Create(int option, ...)
         }
     }
 
-    addrBuffer = creationSuccess ? CharBuffer_Copy(addr) : NULL;
+    addrBuffer = creationSuccess ? CharBuffer_Create(addr) : NULL;
     creationSuccess = (addrBuffer != NULL);
     if (!creationSuccess) {
         fprintf(stderr, "SmtpConnection_Create cannot allocate memory for address\n");
@@ -256,13 +256,13 @@ SmtpConnection* SmtpConnection_Create(int option, ...)
 
     isSsl = (option == SMTP_SSL);
     if (creationSuccess && isSsl) { 
-        userBuffer = (creationSuccess) ? CharBuffer_Copy(user) : NULL;
+        userBuffer = (creationSuccess) ? CharBuffer_Create(user) : NULL;
         creationSuccess = (userBuffer != NULL);
         if (!creationSuccess) {
             //fprintf(stderr, "SmtpConnection_Create cannot allocate memory for user buffer\n");
         }
 
-        passBuffer = (creationSuccess) ? CharBuffer_Copy(pass) : NULL;
+        passBuffer = (creationSuccess) ? CharBuffer_Create(pass) : NULL;
         creationSuccess = (passBuffer != NULL);
         if (!creationSuccess) {
             //fprintf(stderr, "SmtpConnection_Create cannot allocate memory for password buffer\n");
