@@ -112,13 +112,9 @@ static int sendEmail(lua_State* L)
     content = sendSuccess ? lua_tolstring(L, 5, NULL) : NULL;
     sendSuccess = (content != NULL);
     
-    if (sendSuccess) {
-        sendSuccess = SmtpConnection_SendEmail(*connectionAddr,
-                                               sender,
-                                               receiver,
-                                               subject,
-                                               content
-                                              );
+    Email* e = Email_Create(sender, receiver, subject, content);
+    if (sendSuccess && e) {
+        sendSuccess = SmtpConnection_SendEmail(*connectionAddr, e);
         lua_pushboolean(L, sendSuccess);
         return 1;
     }

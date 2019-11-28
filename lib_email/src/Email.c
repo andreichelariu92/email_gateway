@@ -42,21 +42,21 @@ Email* Email_Create(const char* sender,
     validInput = validInput ? isValidEmail(sender) : validInput;
     validInput = validInput ? isValidEmail(receiver) : validInput;
 
-    senderBuff = validInput ? CharBuffer_Copy(sender) : NULL;
+    senderBuff = validInput ? CharBuffer_Create(sender) : NULL;
     allocationSuccess = (senderBuff != NULL);
 
     receiverBuff = (validInput && allocationSuccess) 
-        ? CharBuffer_Copy(receiver)
+        ? CharBuffer_Create(receiver)
         : NULL;
     allocationSuccess = (receiverBuff != NULL);
 
     subjectBuff = (validInput && allocationSuccess)
-        ? CharBuffer_Copy(subject)
+        ? CharBuffer_Create(subject)
         : NULL;
     allocationSuccess = (subjectBuff != NULL);
 
     contentBuff = (validInput && allocationSuccess)
-        ? CharBuffer_Copy(content)
+        ? CharBuffer_Create(content)
         : NULL;
     allocationSuccess = (contentBuff != NULL);
 
@@ -84,45 +84,45 @@ Email* Email_Create(const char* sender,
     return output;
 }
 
-char* Email_Sender(Email* e, const char* option)
+char* Email_GetSender(Email* e)
 {
     char* output = NULL;
 
     if (e) {
-        output = CharBuffer_Buffer(e->sender, option);
+        output = CharBuffer_Get(e->sender);
     }
 
     return output;
 }
 
-char* Email_Receiver(Email* e, const char* option)
+char* Email_GetReceiver(Email* e)
 {
     char* output = NULL;
 
     if (e) {
-        output = CharBuffer_Buffer(e->receiver, option);
+        output = CharBuffer_Get(e->receiver);
     }
 
     return output;
 }
 
-char* Email_Subject(Email* e, const char* option)
+char* Email_GetSubject(Email* e)
 {
     char* output = NULL;
 
     if (e) {
-        output = CharBuffer_Buffer(e->subject, option);
+        output = CharBuffer_Get(e->subject);
     }
 
     return output;
 }
 
-char* Email_Content(Email* e, const char* option)
+char* Email_GetContent(Email* e)
 {
     char* output = NULL;
 
     if (e) {
-        output = CharBuffer_Buffer(e->content, option);
+        output = CharBuffer_Get(e->content);
     }
 
     return output;

@@ -6,12 +6,12 @@
 struct _SmtpConnection;
 typedef struct _SmtpConnection SmtpConnection;
 
-//TODO: Andrei: Add/generate doxygen documentation.
-
 extern const int SMTP_SSL;
 extern const int SMTP_NO_SSL;
 
 /**
+ * \fn SmtpConnection_Create
+ *
  * \brief
  * Create a SMTP connection based on the following options:
  * SMTP_SSL = input parameters are:
@@ -24,10 +24,23 @@ extern const int SMTP_NO_SSL;
  * error.
  */
 SmtpConnection* SmtpConnection_Create(int option, ...);
+
+/**
+ * \fn SmtpConnection_Delete
+ *
+ * \brief
+ * Frees up the resources assoicated with the smtp connection.
+ */
 void SmtpConnection_Delete(SmtpConnection* c);
-int SmtpConnection_SendEmail(SmtpConnection* c,
-    const char* from,
-    const char* to,
-    const char* subject,
-    const char* content);
+
+/**
+ * \fn SmtpConnection_SendEmail
+ *
+ * \brief
+ * Sends the email using the the smtp connection.
+ *
+ * \return
+ * 1 in case of success; 0 in case of error.
+ */
+int SmtpConnection_SendEmail(SmtpConnection* c, Email* e);
 #endif

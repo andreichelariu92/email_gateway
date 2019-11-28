@@ -60,6 +60,8 @@ void* MemoryRegion_Buffer(MemoryRegion* m);
 
 /**
  * \fn MemoryRegion_ElementCount
+ *
+ * \brief
  * Returns the number of elements inside the MemoryRegion structure.
  * If m is 0, it returns 0.
  */

@@ -31,7 +31,7 @@ static char* copyBuffer(const char* buffer)
     return output;
 }
 
-CharBuffer* CharBuffer_Copy(const char* string)
+CharBuffer* CharBuffer_Create(const char* string)
 {
     CharBuffer* output = 0;
     int stringLen = 0;
@@ -143,23 +143,33 @@ int CharBuffer_Append(CharBuffer* c, const char* string)
     return success;
 }
 
-char* CharBuffer_Buffer(CharBuffer* c, const char* option)
+char* CharBuffer_Get(CharBuffer* c)
 {
-    char* output = 0;
-    
-    const int COPYLEN = 4;
-    const int copyOption = (strncmp(option, "copy", COPYLEN) == 0)
-        || (strncmp(option, "COPY", COPYLEN) == 0);
+    char* output;
 
-    const int GETLEN = 3;
-    const int getOption = (strncmp(option, "get", GETLEN) == 0)
-        || (strncmp(option, "GET", GETLEN) == 0);
-
-    if (c && copyOption) {
-        output = copyBuffer(MemoryRegion_Buffer(c->memoryRegion));
+    if (c == NULL)
+    {
+        output = NULL;
     }
-    else if (c && getOption) {
+    else
+    {
         output = MemoryRegion_Buffer(c->memoryRegion);
+    }
+
+    return output;
+}
+
+char* CharBuffer_Copy(CharBuffer* c)
+{
+    char* output;
+
+    if (c == NULL)
+    {
+        output = NULL;
+    }
+    else
+    {
+        output = copyBuffer(MemoryRegion_Buffer(c->memoryRegion));
     }
 
     return output;

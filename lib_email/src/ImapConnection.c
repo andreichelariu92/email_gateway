@@ -31,7 +31,7 @@ static CharBuffer* formatField(const char* prefix, const char* field, const char
     int formatSuccess = 0;
     CharBuffer* output = NULL;
     
-    output = CharBuffer_Copy(prefix);
+    output = CharBuffer_Create(prefix);
     formatSuccess = (output != NULL);
     
     formatSuccess = formatSuccess ? CharBuffer_Append(output, field) : 0;
@@ -65,21 +65,21 @@ static CURL* createHandle(int isSsl, CharBuffer* ip, int port, CharBuffer* user,
     
     //for default ports it is not necessary to add it to the URL
     if ((isSsl && port == IMAP_SSL_DEFAULT_PORT) || (!isSsl && port == IMAP_NO_SSL_DEFAULT_PORT)) {
-        curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_URL, CharBuffer_Buffer(ip, "GET")) : CURLE_FAILED_INIT;
+        curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_URL, CharBuffer_Get(ip)) : CURLE_FAILED_INIT;
         createSuccess = (curlCode == CURLE_OK);
     }
     else {
         sprintf(stringPort, "%d", port);
-        ipPort = createSuccess ? formatField(CharBuffer_Buffer(ip, "GET"), ":", stringPort) : NULL;
-        curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_URL, CharBuffer_Buffer(ipPort, "GET")) : CURLE_FAILED_INIT;
+        ipPort = createSuccess ? formatField(CharBuffer_Get(ip), ":", stringPort) : NULL;
+        curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_URL, CharBuffer_Get(ipPort)) : CURLE_FAILED_INIT;
         createSuccess = (curlCode == CURLE_OK);
     }
     
     if (isSsl) {
-        curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_USERNAME, CharBuffer_Buffer(user, "GET")) : CURLE_FAILED_INIT;
+        curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_USERNAME, CharBuffer_Get(user)) : CURLE_FAILED_INIT;
         createSuccess = (curlCode == CURLE_OK);
         
-        curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_PASSWORD, CharBuffer_Buffer(pass, "GET")) : CURLE_FAILED_INIT;
+        curlCode = createSuccess ? curl_easy_setopt(output, CURLOPT_PASSWORD, CharBuffer_Get(pass)) : CURLE_FAILED_INIT;
         createSuccess = (curlCode == CURLE_OK);
     }
     
@@ -94,8 +94,8 @@ static CURL* createHandle(int isSsl, CharBuffer* ip, int port, CharBuffer* user,
 
 static int validateIp(CharBuffer* ip)
 {
-    char* dotPosition = strstr(CharBuffer_Buffer(ip, "GET"), ".");
-    char* slashPosition = strstr(CharBuffer_Buffer(ip, "GET"), "//");
+    char* dotPosition = strstr(CharBuffer_Get(ip), ".");
+    char* slashPosition = strstr(CharBuffer_Get(ip), "//");
     
     return ((dotPosition != NULL) || (slashPosition != NULL));
 }
@@ -214,7 +214,7 @@ ImapConnection* ImapConnection_Create(int option, ...)
     }
     
     ipPtr = createSuccess ? va_arg(args, char*) : NULL;
-    ip = createSuccess ? CharBuffer_Copy(ipPtr) : NULL;
+    ip = createSuccess ? CharBuffer_Create(ipPtr) : NULL;
     createSuccess = (ip != NULL && validateIp(ip));
     
     port = createSuccess ? va_arg(args, int) : -1;
@@ -223,11 +223,11 @@ ImapConnection* ImapConnection_Create(int option, ...)
     if (isSsl) {
     
         userPtr = createSuccess ? va_arg(args, char*) : NULL;
-        user = createSuccess ? CharBuffer_Copy(userPtr) : NULL;
+        user = createSuccess ? CharBuffer_Create(userPtr) : NULL;
         createSuccess = (user != NULL);
         
         passPtr = createSuccess ? va_arg(args, char*) : NULL;
-        pass = createSuccess ? CharBuffer_Copy(passPtr) : NULL;
+        pass = createSuccess ? CharBuffer_Create(passPtr) : NULL;
         createSuccess = (pass != NULL);
     }
     
@@ -298,7 +298,7 @@ const char* ImapConnection_ExecuteCommand(ImapConnection* connection, const char
     curlCode = commandSuccess ? curl_easy_perform(connection->handle) : CURLE_FAILED_INIT;
     commandSuccess = (curlCode == CURLE_OK);
     
-    output = commandSuccess ? CharBuffer_Buffer(connection->commandResult, "COPY") : NULL;
+    output = commandSuccess ? CharBuffer_Copy(connection->commandResult) : NULL;
     
     if (commandSuccess) {
         //clean up the buffer for the next command.
