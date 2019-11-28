@@ -47,18 +47,35 @@ CharBuffer* CharBuffer_Take(char** string);
 int CharBuffer_Append(CharBuffer* c, const char* string);
 
 /**
- * \fn CharBuffer_Buffer
+ * \fn CharBuffer_Get
  *
  * \brief
- * Returns the internal buffer contained in the CharBufer structure.
- * Based on "option", the returned buffer can be freed by the caller or not.
- * If "option" is "GET", the caller must not free the data.
- * If "option" is "COPY", the caller must free the data.
+ * Returns the internal buffer of characters.
+ *
+ * \attention
+ * Don't free up this buffer.
  *
  * \return
- * Pointer to the characters contained by "c".
+ * Pointer to characters contained in "c".
  */
-char* CharBuffer_Buffer(CharBuffer* c, const char* option);
+char* CharBuffer_Get(CharBuffer* c);
+
+/**
+ * \fn CharBuffer_Copy
+ *
+ * \brief
+ * Copy the internal buffer of characters and returns a
+ * pointer to the memory region.
+ *
+ * \attention
+ * The caller is responsible to free up the memory,
+ * using free function.
+ *
+ * \return
+ * Pointer to a new memory region, containing the characters
+ * from "c".
+ */
+char* CharBuffer_Copy(CharBuffer* c);
 
 /**
  * \fn CharBuffer_Size
