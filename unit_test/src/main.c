@@ -149,21 +149,18 @@ char* test_CharBuffer_Take()
 
 char* test_CharBuffer_Buffer()
 {
-    char* c1 = CharBuffer_Buffer(0, "get");
+    char* c1 = CharBuffer_Get(0);
     mu_assert("CharBuffer_Buffer failed", (c1 == 0));
 
     CharBuffer* cb = CharBuffer_Create("Ana are raie");
-    mu_assert("Getter function for CharBuffer failed", (CharBuffer_Buffer(cb, "get") != 0));
+    mu_assert("Getter function for CharBuffer failed", (CharBuffer_Get(cb) != 0));
     CharBuffer_Delete(cb);
     
     CharBuffer* cb2 = CharBuffer_Create("Just a test");
     
-    char* copyBuff = CharBuffer_Buffer(cb2, "copy");
+    char* copyBuff = CharBuffer_Copy(cb2);
     mu_assert("Copy option for CharBuffer_Buffer failed", (copyBuff != 0));
     free(copyBuff);
-
-    const char* invalidBuff = CharBuffer_Buffer(cb2, "invalid");
-    mu_assert("Invalid option for CharBuffer_Buffer failed", (invalidBuff == 0));
 
     CharBuffer_Delete(cb2);
 
@@ -177,13 +174,13 @@ char* test_CharBuffer_All()
     CharBuffer* c3 = CharBuffer_Create("Sebi Andone");
 
     CharBuffer* total = CharBuffer_Create("");
-    CharBuffer_Append(total, CharBuffer_Buffer(c1, "get"));
+    CharBuffer_Append(total, CharBuffer_Get(c1));
     CharBuffer_Append(total, ", ");
-    CharBuffer_Append(total, CharBuffer_Buffer(c2, "GET"));
+    CharBuffer_Append(total, CharBuffer_Get(c2));
     CharBuffer_Append(total, ", ");
-    CharBuffer_Append(total, CharBuffer_Buffer(c3, "get"));
+    CharBuffer_Append(total, CharBuffer_Get(c3));
 
-    const int totalSize = strlen(CharBuffer_Buffer(total, "get"));
+    const int totalSize = strlen(CharBuffer_Get(total));
     const int testValue = 
         strlen("Andrei Chelariu, Stefan Mechenici, Sebi Andone");
     mu_assert("test_CharBuffer_All failed", (totalSize == testValue));
@@ -255,34 +252,24 @@ char* test_Email_Getters()
     {
          // test case 1:
          // Create an email structure with invalid input.
-         // All the getters should return null, for get,
-         // copy and invalid options.
-        const char* options[] = {
-            "get",
-            "copy",
-            "invalid option"
-        };
-        const int optionCount = 3;
+         // All the getters should return null.
+
 
         Email* e = Email_Create(NULL,
                 NULL,
                 NULL,
                 NULL);
         
-        int optionIdx = 0;
-        for (; optionIdx < optionCount; ++optionIdx) {
-            mu_assert("Email_Sender for invalid input", (Email_GetSender(e, options[optionIdx]) == NULL));
-            mu_assert("Email_Receiver for invalid input", (Email_GetReceiver(e, options[optionIdx]) == NULL));
-            mu_assert("Email_Subject for invalid input", (Email_GetSubject(e, options[optionIdx]) == NULL));
-            mu_assert("Email_Content for invalid input", (Email_GetContent(e, options[optionIdx]) == NULL));
-        }
+        mu_assert("Email_Sender for invalid input", (Email_GetSender(e) == NULL));
+        mu_assert("Email_Receiver for invalid input", (Email_GetReceiver(e) == NULL));
+        mu_assert("Email_Subject for invalid input", (Email_GetSubject(e) == NULL));
+        mu_assert("Email_Content for invalid input", (Email_GetContent(e) == NULL));
     }
 
     {
          // test case 2:
          // Create an email structure with invalid input.
-         // The getters should return the exptected input
-         // with "get" and "copy" options
+         // The getters should return the exptected input.
         
         const char sender[] = "stefan@bossu.com";
         const char receiver[] = "andrei@bossu.com";
@@ -296,20 +283,15 @@ char* test_Email_Getters()
 
         mu_assert("Email_Create for valid input", (e != NULL));
 
-        const char* gSender = Email_GetSender(e, "get");
-        const char* gReceiver = Email_GetReceiver(e, "get");
-        char* cSubject = Email_GetSubject(e, "copy");
-        char* cContent = Email_GetContent(e, "copy");
-        char* iSender = Email_GetSender(e, "invalid_opt");
+        const char* gSender = Email_GetSender(e);
+        const char* gReceiver = Email_GetReceiver(e);
+        char* gSubject = Email_GetSubject(e);
+        char* gContent = Email_GetContent(e);
 
         mu_assert("Email_Sender for valid input", (strcmp(sender, gSender) == 0));
         mu_assert("Email_Receiver for valid input", (strcmp(receiver, gReceiver) == 0));
-        mu_assert("Email_Subject for valid input", (strcmp(subject, cSubject) == 0));
-        mu_assert("Email_Content for valid input", (strcmp(content, cContent) == 0));
-        mu_assert("Email_Content for invalid option", (iSender == NULL));
-
-        free(cSubject);
-        free(cContent);
+        mu_assert("Email_Subject for valid input", (strcmp(subject, gSubject) == 0));
+        mu_assert("Email_Content for valid input", (strcmp(content, gContent) == 0));
 
         Email_Delete(e);
     }
@@ -374,8 +356,6 @@ char* test_SmtpConnection_SendEmail2()
 {
     SmtpConnection* invalidConnection1 = NULL;
     SmtpConnection* localConnection = SmtpConnection_Create(SMTP_SSL, "127.0.0.1", 465, "andrei", "PRIVATE");
-    const char* invalidSender = NULL;
-    const char* invalidReceiver = "receiver";
 
     SmtpConnection* validConnection = SmtpConnection_Create(SMTP_SSL, "smtps://smtp.gmail.com", 465, "andreichelariu92", "PRIVATE");
     const char validSender[] = "testemailgateway@yahoo.com";
@@ -384,7 +364,7 @@ char* test_SmtpConnection_SendEmail2()
     const char validContent[] = "It works!";
 
     Email* validEmail = Email_Create(validSender, validReceiver, validSubject, validContent);
-    const Email *const invalidEmail = NULL;
+    Email* invalidEmail = NULL;
     
     {
         //test case 1:
