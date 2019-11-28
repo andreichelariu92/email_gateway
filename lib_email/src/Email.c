@@ -84,45 +84,45 @@ Email* Email_Create(const char* sender,
     return output;
 }
 
-char* Email_GetSender(Email* e, const char* option)
+char* Email_GetSender(Email* e)
 {
     char* output = NULL;
 
     if (e) {
-        output = CharBuffer_Buffer(e->sender, option);
+        output = CharBuffer_Get(e->sender);
     }
 
     return output;
 }
 
-char* Email_GetReceiver(Email* e, const char* option)
+char* Email_GetReceiver(Email* e)
 {
     char* output = NULL;
 
     if (e) {
-        output = CharBuffer_Buffer(e->receiver, option);
+        output = CharBuffer_Get(e->receiver);
     }
 
     return output;
 }
 
-char* Email_GetSubject(Email* e, const char* option)
+char* Email_GetSubject(Email* e)
 {
     char* output = NULL;
 
     if (e) {
-        output = CharBuffer_Buffer(e->subject, option);
+        output = CharBuffer_Get(e->subject);
     }
 
     return output;
 }
 
-char* Email_GetContent(Email* e, const char* option)
+char* Email_GetContent(Email* e)
 {
     char* output = NULL;
 
     if (e) {
-        output = CharBuffer_Buffer(e->content, option);
+        output = CharBuffer_Get(e->content);
     }
 
     return output;

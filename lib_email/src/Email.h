@@ -31,7 +31,7 @@ Email* Email_Create(const char* sender,
  * \return
  * Pointer to characters containing the sender
  */
-char* Email_GetSender(Email* e, const char* option);
+char* Email_GetSender(Email* e);
 
 /**
  * \fn  Email_GetReceiver
@@ -45,7 +45,7 @@ char* Email_GetSender(Email* e, const char* option);
  * \return
  * Pointer to characters containing the receiver.
  */
-char* Email_GetReceiver(Email* e, const char* option);
+char* Email_GetReceiver(Email* e);
 
 /**
  * \fn Email_GetSubject
@@ -59,7 +59,7 @@ char* Email_GetReceiver(Email* e, const char* option);
  * \return
  * Pointer to characters containing the subject.
  */
-char* Email_GetSubject(Email* e, const char* option);
+char* Email_GetSubject(Email* e);
 
 /**
  * \fn  Email_GetContent
@@ -73,7 +73,7 @@ char* Email_GetSubject(Email* e, const char* option);
  * \return
  * Pointer to characters containing the content of the email.
  */
-char* Email_GetContent(Email* e, const char* option);
+char* Email_GetContent(Email* e);
 
 /**
  * \fn Email_Delete

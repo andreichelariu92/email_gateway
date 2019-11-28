@@ -74,10 +74,10 @@ static CharBuffer* formatEmail(Email* e)
     formatSuccess = (e != NULL && output != NULL);
     
     //get pointers to the email fields
-    sender = formatSuccess ? Email_GetSender(e, "GET") : NULL;
-    receiver  = formatSuccess ? Email_GetReceiver(e, "GET") : NULL;
-    subject = formatSuccess ? Email_GetSubject(e, "GET") : NULL;
-    content = formatSuccess ? Email_GetContent(e,"GET") : NULL;
+    sender = formatSuccess ? Email_GetSender(e) : NULL;
+    receiver  = formatSuccess ? Email_GetReceiver(e) : NULL;
+    subject = formatSuccess ? Email_GetSubject(e) : NULL;
+    content = formatSuccess ? Email_GetContent(e) : NULL;
     
     //add sender
     formatSuccess = formatSuccess ? CharBuffer_Append(output, sender) : 0;
@@ -137,7 +137,7 @@ static size_t curlCallback(void* outputAddr,
         if (sendSuccess) {
             conn->emailSent = 1;
             bytesCopied = emailSize;
-            memcpy(outputAddr, CharBuffer_Buffer(emailBuffer, "GET"), bytesCopied);
+            memcpy(outputAddr, CharBuffer_Get(emailBuffer), bytesCopied);
             CharBuffer_Delete(emailBuffer);
         }    
     }
@@ -171,7 +171,7 @@ static CURL* createHandle(const char* addr,
         createSuccess = (addrAndPort != NULL);
 
         errorCode = createSuccess ? 
-            curl_easy_setopt(output, CURLOPT_URL, CharBuffer_Buffer(addrAndPort, "GET"))
+            curl_easy_setopt(output, CURLOPT_URL, CharBuffer_Get(addrAndPort))
             : CURLE_FAILED_INIT;
         createSuccess = (errorCode == CURLE_OK);
         
@@ -333,8 +333,8 @@ int SmtpConnection_SendEmail(SmtpConnection* c, Email* e)
         c->currentEmail = e;
         
         //set all the options for the request
-        struct curl_slist* receivers = makeReceiverList(Email_GetReceiver(e, "GET"));
-        curl_easy_setopt(c->handle, CURLOPT_MAIL_FROM, Email_GetSender(e, "GET"));
+        struct curl_slist* receivers = makeReceiverList(Email_GetReceiver(e));
+        curl_easy_setopt(c->handle, CURLOPT_MAIL_FROM, Email_GetSender(e));
         curl_easy_setopt(c->handle, CURLOPT_MAIL_RCPT, receivers);
         curl_easy_setopt(c->handle, CURLOPT_READFUNCTION, curlCallback);
         curl_easy_setopt(c->handle, CURLOPT_READDATA, c);
